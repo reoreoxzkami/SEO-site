@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pythonでデータ分析を始める方法 - pandas入門 | DevLab</title>
+  <meta name="description" content="Pythonのpandasライブラリを使ったデータ分析の入門ガイド。CSVの読み込みからデータのフィルタリング、集計、可視化まで、実際のコード例で解説。初心者でもすぐに始められる内容です。">
+  <meta name="keywords" content="Python, pandas, データ分析, CSV, DataFrame, データサイエンス, Python入門">
+  <meta name="author" content="DevLab">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:title" content="Pythonでデータ分析を始める方法 - pandas入門">
+  <meta property="og:description" content="pandasを使ったデータ分析の基本をコード例付きで解説。">
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:url" content="https://reoreoxzkami.github.io/SEO-site/articles/python-data-analysis.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Pythonでデータ分析を始める方法 - pandas入門">
+  <meta name="twitter:description" content="pandasを使ったデータ分析の基本をコード例付きで解説。">
+
+  <link rel="canonical" href="https://reoreoxzkami.github.io/SEO-site/articles/python-data-analysis.html">
+  <link rel="stylesheet" href="../css/style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Pythonでデータ分析を始める方法 - pandas入門",
+    "description": "Pythonのpandasライブラリを使ったデータ分析の入門ガイド",
+    "datePublished": "2026-08-12",
+    "dateModified": "2026-08-12",
+    "author": { "@type": "Organization", "name": "DevLab" },
+    "publisher": { "@type": "Organization", "name": "DevLab" },
+    "inLanguage": "ja",
+    "mainEntityOfPage": "https://reoreoxzkami.github.io/SEO-site/articles/python-data-analysis.html"
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <h1><a href="../">DevLab</a></h1>
+    <nav>
+      <a href="../">ホーム</a>
+      <a href="../#articles">記事一覧</a>
+    </nav>
+  </header>
+
+  <main>
+    <article>
+      <p class="meta"><time datetime="2026-08-12">2026年8月12日</time> · Python</p>
+      <h1>Pythonでデータ分析を始める方法 - pandas入門</h1>
+
+      <div class="toc">
+        <h3>目次</h3>
+        <ul>
+          <li><a href="#what-is-pandas">pandasとは</a></li>
+          <li><a href="#install">インストール</a></li>
+          <li><a href="#read-data">データの読み込み</a></li>
+          <li><a href="#explore">データの確認</a></li>
+          <li><a href="#filter">データのフィルタリング</a></li>
+          <li><a href="#aggregate">データの集計</a></li>
+          <li><a href="#visualize">データの可視化</a></li>
+          <li><a href="#tips">実践的なTips</a></li>
+        </ul>
+      </div>
+
+      <h2 id="what-is-pandas">pandasとは</h2>
+      <p><code>pandas</code>は、Pythonでデータ分析を行うための最もポピュラーなライブラリです。表形式のデータ（CSV、Excel、SQLクエリ結果など）を効率的に操作・分析するための豊富な機能を提供します。</p>
+      <p>データサイエンス、機械学習、ビジネス分析など、幅広い分野で標準的に使われており、NumPyと並んでPythonデータ分析の基礎となっています。</p>
+
+      <h2 id="install">インストール</h2>
+      <pre><code>pip install pandas matplotlib</code></pre>
+      <p><code>matplotlib</code>はデータの可視化に使います。後ほど使うので一緒にインストールしておきましょう。</p>
+
+      <h2 id="read-data">データの読み込み</h2>
+      <p>CSVファイルの読み込みは、pandasでは1行でできます。</p>
+      <pre><code>import pandas as pd
+
+# CSVを読み込む
+df = pd.read_csv('sales_data.csv')
+
+# 最初の5行を表示
+print(df.head())
+
+#     date     product  price  quantity
+# 0  2026-01-01  Apple    120         5
+# 1  2026-01-01  Banana    80        10
+# 2  2026-01-02  Apple    120         3
+# 3  2026-01-02  Orange   150         7
+# 4  2026-01-03  Banana    80         8</code></pre>
+      <p>Excelファイルも同様に読み込めます：</p>
+      <pre><code>df = pd.read_excel('sales_data.xlsx', sheet_name='Sheet1')</code></pre>
+
+      <h2 id="explore">データの確認</h2>
+      <p>読み込んだデータの全体像を把握するための基本操作です：</p>
+      <pre><code># データの形状（行数、列数）
+print(df.shape)          # (1000, 4)
+
+# データ型の確認
+print(df.dtypes)
+# date        object
+# product     object
+# price        int64
+# quantity     int64
+
+# 基本統計量
+print(df.describe())
+#            price    quantity
+# count  1000.00000  1000.00000
+# mean    116.80000     6.54000
+# std      35.20000     3.21000
+# min      80.00000     1.00000
+# max     150.00000    20.00000
+
+# 欠損値の確認
+print(df.isnull().sum())</code></pre>
+
+      <h2 id="filter">データのフィルタリング</h2>
+      <p>条件を使ってデータを絞り込む方法です：</p>
+      <pre><code># 価格が100以上の行
+expensive = df[df['price'] >= 100]
+
+# 複数条件（AND）
+apple_high = df[(df['product'] == 'Apple') & (df['price'] >= 120)]
+
+# 複数条件（OR）
+citrus = df[df['product'].isin(['Orange', 'Apple'])]
+
+# 文字列を含む行
+apple_items = df[df['product'].str.contains('Apple', case=False)]</code></pre>
+
+      <h2 id="aggregate">データの集計</h2>
+      <p>グループ化と集計は、データ分析の中核となる操作です：</p>
+      <pre><code># 商品ごとの売上合計
+sales_by_product = df.groupby('product')['price'].sum()
+# product
+# Apple     36000
+# Banana    16000
+# Orange    45000
+
+# 商品ごとの平均単価と数量
+summary = df.groupby('product').agg({
+    'price': 'mean',
+    'quantity': ['sum', 'mean']
+})
+
+# 日付ごとの売上
+daily_sales = df.groupby('date')['price'].sum().sort_values(ascending=False)</code></pre>
+      <blockquote>groupby + aggの組み合わせを覚えれば、大部分の集計処理はカバーできます。</blockquote>
+
+      <h2 id="visualize">データの可視化</h2>
+      <p>pandasはmatplotlibと連携して、簡単にグラフを描けます：</p>
+      <pre><code>import matplotlib.pyplot as plt
+
+# 折れ線グラフ
+df.groupby('date')['price'].sum().plot(kind='line', figsize=(10, 5))
+plt.title('日別売上')
+plt.show()
+
+# 棒グラフ
+df.groupby('product')['quantity'].sum().plot(kind='bar')
+plt.title('商品別売上数量')
+plt.show()
+
+# ヒストグラム
+df['price'].plot(kind='hist', bins=20)
+plt.title('価格の分布')
+plt.show()</code></pre>
+
+      <h2 id="tips">実践的なTips</h2>
+      <ol>
+        <li><strong>astype で型変換</strong>：<code>df['price'] = df['price'].astype(float)</code></li>
+        <li><strong>apply で列に一括処理</strong>：<code>df['total'] = df.apply(lambda r: r['price'] * r['quantity'], axis=1)</code></li>
+        <li><strong>merge で表を結合</strong>：<code>pd.merge(df1, df2, on='product')</code></li>
+        <li><strong>pivot_table</strong>：<code>pd.pivot_table(df, values='price', index='date', columns='product', aggfunc='sum')</code></li>
+        <li><strong>to_csv で保存</strong>：<code>df.to_csv('output.csv', index=False)</code></li>
+      </ol>
+
+      <div class="related">
+        <h3>関連記事</h3>
+        <ul>
+          <li><a href="react-useeffect-guide.html">React useEffectの完全ガイド</a></li>
+          <li><a href="typescript-type-inference.html">TypeScriptの型推論を理解する</a></li>
+          <li><a href="git-rebase-vs-merge.html">Git rebaseとmergeの違いを完全理解する</a></li>
+        </ul>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 DevLab. All rights reserved.</p>
+  </footer>
+</body>
+</html>

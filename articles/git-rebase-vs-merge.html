@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git rebaseとmergeの違いを完全理解する | DevLab</title>
+  <meta name="description" content="Gitのrebaseとmergeの仕組みを図解で解説。それぞれをいつ使うべきか、チーム開発でのベストプラクティス、コンフリクトの解決方法まで詳しく紹介。Git初心者から中級者向け。">
+  <meta name="keywords" content="Git, rebase, merge, ブランチ, コンフリクト, チーム開発, Git初心者">
+  <meta name="author" content="DevLab">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:title" content="Git rebaseとmergeの違いを完全理解する">
+  <meta property="og:description" content="rebaseとmergeの仕組みを図解で解説。いつどちらを使うべきかも紹介。">
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:url" content="https://reoreoxzkami.github.io/SEO-site/articles/git-rebase-vs-merge.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Git rebaseとmergeの違いを完全理解する">
+  <meta name="twitter:description" content="rebaseとmergeの仕組みを図解で解説。">
+
+  <link rel="canonical" href="https://reoreoxzkami.github.io/SEO-site/articles/git-rebase-vs-merge.html">
+  <link rel="stylesheet" href="../css/style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Git rebaseとmergeの違いを完全理解する",
+    "description": "Gitのrebaseとmergeの仕組みを解説。いつ使うべきか、チーム開発でのベストプラクティスを紹介",
+    "datePublished": "2026-08-12",
+    "dateModified": "2026-08-12",
+    "author": { "@type": "Organization", "name": "DevLab" },
+    "publisher": { "@type": "Organization", "name": "DevLab" },
+    "inLanguage": "ja",
+    "mainEntityOfPage": "https://reoreoxzkami.github.io/SEO-site/articles/git-rebase-vs-merge.html"
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <h1><a href="../">DevLab</a></h1>
+    <nav>
+      <a href="../">ホーム</a>
+      <a href="../#articles">記事一覧</a>
+    </nav>
+  </header>
+
+  <main>
+    <article>
+      <p class="meta"><time datetime="2026-08-12">2026年8月12日</time> · Git</p>
+      <h1>Git rebaseとmergeの違いを完全理解する</h1>
+
+      <div class="toc">
+        <h3>目次</h3>
+        <ul>
+          <li><a href="#overview">概要：どちらもブランチを統合する手段</a></li>
+          <li><a href="#merge">mergeの仕組み</a></li>
+          <li><a href="#rebase">rebaseの仕組み</a></li>
+          <li><a href="#comparison">比較まとめ</a></li>
+          <li><a href="#when-to-use">いつどちらを使うべきか</a></li>
+          <li><a href="#conflict">コンフリクトの解決</a></li>
+          <li><a href="#team">チーム開発でのベストプラクティス</a></li>
+        </ul>
+      </div>
+
+      <h2 id="overview">概要：どちらもブランチを統合する手段</h2>
+      <p>Gitでブランチを統合する方法は、大きく分けて<code>merge</code>と<code>rebase</code>の2つがあります。どちらも最終的には「別のブランチの変更を現在のブランチに取り込む」という目的は同じですが、<strong>履歴の形</strong>が大きく異なります。</p>
+
+      <h2 id="merge">mergeの仕組み</h2>
+      <p><code>git merge</code>は、2つのブランチの変更を統合して、新しい「マージコミット」を作成します。履歴は分岐と統合の形を保ちます。</p>
+      <pre><code># mainブランチにfeatureを取り込む
+git checkout main
+git merge feature
+
+# 履歴のイメージ:
+# * merge commit
+# |\
+# | * feature-3
+# | * feature-2
+# | * feature-1
+# * main-2
+# * main-1</code></pre>
+      <p>mergeの特徴：</p>
+      <ul>
+        <li>✅ 履歴がそのまま残る（いつ分岐したか、いつ統合したかがわかる）</li>
+        <li>✅ 安全（既存のコミットを変更しない）</li>
+        <li>❌ マージコミットが増えると履歴が複雑になる</li>
+      </ul>
+
+      <h2 id="rebase">rebaseの仕組み</h2>
+      <p><code>git rebase</code>は、ブランチの「基底」を別のコミットに移動させます。 feature ブランチのコミットを、まるで main ブランチの最新から分岐したかのように並べ直します。</p>
+      <pre><code># featureブランチをmainに追従させる
+git checkout feature
+git rebase main
+
+# 履歴のイメージ:
+# * feature-3 (rebased)
+# * feature-2 (rebased)
+# * feature-1 (rebased)
+# * main-2
+# * main-1</code></pre>
+      <p>rebaseの特徴：</p>
+      <ul>
+        <li>✅ 履歴が直線的で見やすい</li>
+        <li>✅ マージコミットが不要</li>
+        <li>❌ コミットハッシュが変わる（履歴を書き換える）</li>
+        <li>❌ 既にpush済みのブランチに使うと危険</li>
+      </ul>
+
+      <h2 id="comparison">比較まとめ</h2>
+      <table>
+        <thead><tr><th>項目</th><th>merge</th><th>rebase</th></tr></thead>
+        <tbody>
+          <tr><td>履歴の形</td><td>分岐・統合</td><td>直線</td></tr>
+          <tr><td>マージコミット</td><td>作成する</td><td>作成しない</td></tr>
+          <tr><td>安全性</td><td>高い</td><td>共有ブランチでは危険</td></tr>
+          <tr><td>履歴の書き換え</td><td>しない</td><td>する</td></tr>
+          <tr><td>コンフリクト解決</td><td>1回</td><td>コミットごとに発生</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="when-to-use">いつどちらを使うべきか</h2>
+      <p>一般的なガイドライン：</p>
+      <ul>
+        <li><strong>merge</strong> → 共有ブランチ（main, develop）に取り込むとき。安全で履歴が保持される。</li>
+        <li><strong>rebase</strong> → 自分のfeatureブランチを最新mainに追従させるとき。履歴がきれいになる。</li>
+        <li><strong>黄金ルール</strong>：公開済み（push済み）のブランチにはrebaseしない。</li>
+      </ul>
+      <blockquote>「rebase は自分のブランチで、merge は共有ブランチで」と覚えておけば、まず間違いありません。</blockquote>
+
+      <h2 id="conflict">コンフリクトの解決</h2>
+      <p>merge でも rebase でも、同じファイルの同じ行を異なる変更をした場合、コンフリクトが発生します。</p>
+      <pre><code># merge のコンフリクト
+git merge feature
+# CONFLICT (content): Merge conflict in index.html
+
+# コンフリクトを解決後
+git add index.html
+git commit  # マージコミットを完成
+
+# rebase のコンフリクト
+git rebase main
+# CONFLICT: rebasing
+
+# コンフリクトを解決後
+git add index.html
+git rebase --continue  # 次のコミットへ
+
+# 中止したい場合
+git rebase --abort</code></pre>
+      <p>rebaseでは、コンフリクトをコミットごとに解決する必要があるため、コンフリクトが多い場合は merge の方が楽になることがあります。</p>
+
+      <h2 id="team">チーム開発でのベストプラクティス</h2>
+      <ol>
+        <li><strong>feature ブランチを最新に保つ</strong>：作業開始前やPR作成前に <code>git rebase main</code> で最新mainに追従させる</li>
+        <li><strong>PRはマージコミットで</strong>：Squash and Merge または通常のMergeで履歴を明確に保つ</li>
+        <li><strong>小さく頻繁に</strong>：大きな変更を長期間のブランチで行うと、コンフリクトが大きくなる</li>
+        <li><strong>コンミットメッセージを整える</strong>：<code>git rebase -i</code> でコミットを整理してからPRを出す</li>
+      </ol>
+      <pre><code># インタラクティブrebaseでコミットを整理
+git rebase -i HEAD~3
+# pick, squash, reword, fixup でコミットを編集</code></pre>
+
+      <div class="related">
+        <h3>関連記事</h3>
+        <ul>
+          <li><a href="react-useeffect-guide.html">React useEffectの完全ガイド</a></li>
+          <li><a href="python-data-analysis.html">Pythonでデータ分析を始める方法</a></li>
+          <li><a href="typescript-type-inference.html">TypeScriptの型推論を理解する</a></li>
+        </ul>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 DevLab. All rights reserved.</p>
+  </footer>
+</body>
+</html>

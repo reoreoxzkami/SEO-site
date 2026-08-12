@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React useEffectの完全ガイド - 副作用を正しく管理する方法 | DevLab</title>
+  <meta name="description" content="ReactのuseEffectフックについて、基本的な使い方からクリーンアップ関数、依存配列の最適化、カスタムフックへの抽出まで実践的なパターンを網羅的に解説。初心者がつまずきやすい無限ループの回避方法も紹介。">
+  <meta name="keywords" content="React, useEffect, Hooks, 副作用, クリーンアップ, 依存配列, React初心者">
+  <meta name="author" content="DevLab">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:title" content="React useEffectの完全ガイド - 副作用を正しく管理する方法">
+  <meta property="og:description" content="useEffectの基本からクリーンアップ、依存配列の最適化まで実践的に解説。">
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:url" content="https://reoreoxzkami.github.io/SEO-site/articles/react-useeffect-guide.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="React useEffectの完全ガイド">
+  <meta name="twitter:description" content="useEffectの基本からクリーンアップ、依存配列の最適化まで実践的に解説。">
+
+  <link rel="canonical" href="https://reoreoxzkami.github.io/SEO-site/articles/react-useeffect-guide.html">
+  <link rel="stylesheet" href="../css/style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "React useEffectの完全ガイド - 副作用を正しく管理する方法",
+    "description": "ReactのuseEffectフックについて、基本的な使い方からクリーンアップ関数、依存配列の最適化まで実践的に解説",
+    "datePublished": "2026-08-12",
+    "dateModified": "2026-08-12",
+    "author": { "@type": "Organization", "name": "DevLab" },
+    "publisher": { "@type": "Organization", "name": "DevLab" },
+    "inLanguage": "ja",
+    "mainEntityOfPage": "https://reoreoxzkami.github.io/SEO-site/articles/react-useeffect-guide.html"
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <h1><a href="../">DevLab</a></h1>
+    <nav>
+      <a href="../">ホーム</a>
+      <a href="../#articles">記事一覧</a>
+    </nav>
+  </header>
+
+  <main>
+    <article>
+      <p class="meta"><time datetime="2026-08-12">2026年8月12日</time> · React</p>
+      <h1>React useEffectの完全ガイド - 副作用を正しく管理する方法</h1>
+
+      <div class="toc">
+        <h3>目次</h3>
+        <ul>
+          <li><a href="#what-is-useeffect">useEffectとは何か</a></li>
+          <li><a href="#basic-usage">基本的な使い方</a></li>
+          <li><a href="#cleanup">クリーンアップ関数</a></li>
+          <li><a href="#deps">依存配列の理解</a></li>
+          <li><a href="#infinite-loop">無限ループを防ぐ</a></li>
+          <li><a href="#custom-hook">カスタムフックへの抽出</a></li>
+          <li><a href="#best-practices">ベストプラクティス</a></li>
+        </ul>
+      </div>
+
+      <h2 id="what-is-useeffect">useEffectとは何か</h2>
+      <p>Reactの<code>useEffect</code>は、関数コンポーネント内で副作用（side effect）を扱うためのフックです。副作用とは、コンポーネントのレンダリング結果に直接関係しない処理のことで、具体的には以下のようなものが該当します。</p>
+      <ul>
+        <li>APIからのデータ取得</li>
+        <li>DOMの直接操作（ref経由）</li>
+        <li>タイマーの設定・解除</li>
+        <li>イベントリスナーの登録・解除</li>
+        <li>ローカルストレージへの読み書き</li>
+      </ul>
+      <p>クラスコンポーネントにおける<code>componentDidMount</code>、<code>componentDidUpdate</code>、<code>componentWillUnmount</code>を一つにまとめたものと考えるとわかりやすいでしょう。</p>
+
+      <h2 id="basic-usage">基本的な使い方</h2>
+      <p>最も基本的な形は、コールバック関数を渡すパターンです。</p>
+      <pre><code>import { useEffect } from 'react';
+
+function MyComponent() {
+  useEffect(() => {
+    console.log('コンポーネントがレンダリングされました');
+  });
+
+  return &lt;div&gt;Hello&lt;/div&gt;;
+}</code></pre>
+      <p>この場合、コンポーネントがレンダリングされるたびに実行されます。通常は、より制御された動作をさせるために<strong>依存配列</strong>を使います。</p>
+
+      <pre><code>// マウント時に1回だけ実行
+useEffect(() => {
+  fetchData();
+}, []);
+
+// countが変化したときだけ実行
+useEffect(() => {
+  document.title = `カウント: ${count}`;
+}, [count]);</code></pre>
+
+      <h2 id="cleanup">クリーンアップ関数</h2>
+      <p>イベントリスナーの登録やタイマーの設定など、後始末が必要な処理では<strong>クリーンアップ関数</strong>を返します。これにより、メモリリークを防ぐことができます。</p>
+      <pre><code>useEffect(() => {
+  const timer = setInterval(() => {
+    console.log('tick');
+  }, 1000);
+
+  // クリーンアップ関数
+  return () => {
+    clearInterval(timer);
+    console.log('タイマーをクリアしました');
+  };
+}, []);</code></pre>
+      <blockquote>クリーンアップ関数は、コンポーネントがアンマウントされるときと、次回のeffectが実行される前の両方で呼ばれます。</blockquote>
+
+      <h2 id="deps">依存配列の理解</h2>
+      <p>依存配列は<code>useEffect</code>の最も重要な概念の一つです。配列に指定した値が変更されたときのみ、effectが再実行されます。</p>
+      <table>
+        <thead><tr><th>依存配列</th><th>実行タイミング</th></tr></thead>
+        <tbody>
+          <tr><td>指定なし</td><td>毎レンダリング後</td></tr>
+          <tr><td><code>[]</code></td><td>マウント時1回のみ</td></tr>
+          <tr><td><code>[value]</code></td><td>マウント時 + value変更時</td></tr>
+          <tr><td><code>[a, b]</code></td><td>マウント時 + aまたはb変更時</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="infinite-loop">無限ループを防ぐ</h2>
+      <p>useEffectで最もよくある落とし穴が<strong>無限ループ</strong>です。状態を更新する処理を依存配列なしで実行すると、無限にレンダリングが繰り返されます。</p>
+      <pre><code>// ❌ 無限ループになる
+useEffect(() => {
+  setCount(count + 1);
+}); // 依存配列なし → 毎レンダリング実行 → setCount → 再レンダリング → また実行...
+
+// ✅ 正しい方法
+useEffect(() => {
+  setCount(prev => prev + 1);
+}, [trigger]); // triggerが変わったときだけ実行</code></pre>
+      <p>無限ループを防ぐポイント：</p>
+      <ol>
+        <li>状態の更新には関数型アップデートを使う（<code>setCount(prev =&gt; ...)</code>）</li>
+        <li>依存配列を正しく指定する</li>
+        <li>effect内で不要な状態更新を避ける</li>
+      </ol>
+
+      <h2 id="custom-hook">カスタムフックへの抽出</h2>
+      <p>useEffectのロジックが複雑になったら、カスタムフックに抽出することで、再利用性と可読性が向上します。</p>
+      <pre><code>function useWindowWidth() {
+  const [width, setWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return width;
+}
+
+// 使い方
+function MyComponent() {
+  const width = useWindowWidth();
+  return &lt;p&gt;ウィンドウ幅: {width}px&lt;/p&gt;;
+}</code></pre>
+
+      <h2 id="best-practices">ベストプラクティス</h2>
+      <ul>
+        <li><strong>React Hooks ESLintプラグイン</strong>（<code>eslint-plugin-react-hooks</code>）を使い、依存配列の漏れを検出する</li>
+        <li>effect内で非同期処理を行うときは、<code>async/await</code>を直接使わず、別の関数として定義する</li>
+        <li>複数の副作用は、別々の<code>useEffect</code>に分ける</li>
+        <li>クリーンアップが必要な処理は必ずクリーンアップ関数を返す</li>
+      </ul>
+      <pre><code>// 非同期処理の正しい書き方
+useEffect(() => {
+  let isMounted = true;
+
+  const fetchData = async () => {
+    const res = await fetch('/api/data');
+    if (isMounted) {
+      setData(await res.json());
+    }
+  };
+
+  fetchData();
+  return () => { isMounted = false; };
+}, []);</code></pre>
+
+      <div class="related">
+        <h3>関連記事</h3>
+        <ul>
+          <li><a href="typescript-type-inference.html">TypeScriptの型推論を理解する</a></li>
+          <li><a href="python-data-analysis.html">Pythonでデータ分析を始める方法</a></li>
+          <li><a href="git-rebase-vs-merge.html">Git rebaseとmergeの違いを完全理解する</a></li>
+        </ul>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 DevLab. All rights reserved.</p>
+  </footer>
+</body>
+</html>

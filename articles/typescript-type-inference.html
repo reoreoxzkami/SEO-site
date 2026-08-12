@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TypeScriptの型推論を理解する - 明示的な型注釈はいつ必要か | DevLab</title>
+  <meta name="description" content="TypeScriptの型推論の仕組みを詳しく解説。基本的な型推論から、コンテキストベースの型推論、ジェネリクスでの推論まで。明示的な型注釈がいつ必要になるかも紹介。">
+  <meta name="keywords" content="TypeScript, 型推論, 型注釈, 型システム, ジェネリクス, TypeScript入門">
+  <meta name="author" content="DevLab">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:title" content="TypeScriptの型推論を理解する - 明示的な型注釈はいつ必要か">
+  <meta property="og:description" content="TypeScriptの型推論の仕組みを詳しく解説。いつ型注釈が必要かも紹介。">
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:url" content="https://reoreoxzkami.github.io/SEO-site/articles/typescript-type-inference.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="TypeScriptの型推論を理解する">
+  <meta name="twitter:description" content="型推論の仕組みと、型注釈が必要な場面を解説。">
+
+  <link rel="canonical" href="https://reoreoxzkami.github.io/SEO-site/articles/typescript-type-inference.html">
+  <link rel="stylesheet" href="../css/style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "TypeScriptの型推論を理解する - 明示的な型注釈はいつ必要か",
+    "description": "TypeScriptの型推論の仕組みを詳しく解説。明示的な型注釈がいつ必要になるかを紹介",
+    "datePublished": "2026-08-12",
+    "dateModified": "2026-08-12",
+    "author": { "@type": "Organization", "name": "DevLab" },
+    "publisher": { "@type": "Organization", "name": "DevLab" },
+    "inLanguage": "ja",
+    "mainEntityOfPage": "https://reoreoxzkami.github.io/SEO-site/articles/typescript-type-inference.html"
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <h1><a href="../">DevLab</a></h1>
+    <nav>
+      <a href="../">ホーム</a>
+      <a href="../#articles">記事一覧</a>
+    </nav>
+  </header>
+
+  <main>
+    <article>
+      <p class="meta"><time datetime="2026-08-12">2026年8月12日</time> · TypeScript</p>
+      <h1>TypeScriptの型推論を理解する - 明示的な型注釈はいつ必要か</h1>
+
+      <div class="toc">
+        <h3>目次</h3>
+        <ul>
+          <li><a href="#what-is-inference">型推論とは</a></li>
+          <li><a href="#basic-inference">基本的な型推論</a></li>
+          <li><a href="#contextual">コンテキストベースの型推論</a></li>
+          <li><a href="#best-common-type">最善共通型</a></li>
+          <li><a href="#when-annotations-needed">型注釈が必要な場面</a></li>
+          <li><a href="#generics">ジェネリクスと型推論</a></li>
+          <li><a href="#tips">実践的なTips</a></li>
+        </ul>
+      </div>
+
+      <h2 id="what-is-inference">型推論とは</h2>
+      <p>TypeScriptの型推論（Type Inference）とは、明示的に型を書かなくても、TypeScriptがコードの文脈から自動的に型を判断してくれる機能です。これにより、開発者は型安全性を保ちながら、冗長な型注釈を省略できます。</p>
+      <blockquote>TypeScriptの型推論は、賢い言語設計のおかげで「書かなくていい型」を大幅に減らしてくれます。しかし、「書くべき型」を見極めることが重要です。</blockquote>
+
+      <h2 id="basic-inference">基本的な型推論</h2>
+      <p>変数を初期化すると、その値から型が推論されます：</p>
+      <pre><code>// 変数の初期化から推論
+let name = "Alice";      // string型
+let age = 25;            // number型
+let isActive = true;     // boolean型
+let items = [1, 2, 3];   // number[]型
+
+// 関数の戻り値も推論される
+function add(a: number, b: number) {
+  return a + b;          // 戻り値はnumber型と推論
+}
+
+// 関数式の戻り値も推論
+const multiply = (a: number, b: number) => a * b;  // numberを返す</code></pre>
+
+      <h2 id="contextual">コンテキストベースの型推論</h2>
+      <p>式が使われる文脈から型が推論されることもあります。これを「コンテキストベースの型推論」と呼びます：</p>
+      <pre><code>// イベントハンドラーの型は自動的に推論
+button.addEventListener('click', (event) => {
+  // event は MouseEvent と推論される
+  console.log(event.clientX);
+});
+
+// Window.onkeydown の文脈から KeyboardEvent が推論
+window.onkeydown = (event) => {
+  console.log(event.key);
+};</code></pre>
+      <p>これは、DOM APIの型定義が文脈を提供しているため、引数の型を書かなくても正しく推論される例です。</p>
+
+      <h2 id="best-common-type">最善共通型</h2>
+      <p>配列に複数の型が混在する場合、TypeScriptは「最善共通型（Best Common Type）」を推論します：</p>
+      <pre><code>// numberとstringの混合 → (string | number)[]
+let mixed = [1, "two", 3];
+// (string | number)[]型
+
+// 全てnumber → number[]
+let nums = [1, 2, 3];
+// number[]型
+
+// クラスの継承関係がある場合
+class Animal { name: string; }
+class Dog extends Animal { bark() {} }
+class Cat extends Animal { meow() {} }
+
+let pets = [new Dog(), new Cat()];
+// Animal[] と推論（共通の親型）</code></pre>
+
+      <h2 id="when-annotations-needed">型注釈が必要な場面</h2>
+      <p>型推論に頼れない、明示的な型注釈が必要なケースを紹介します：</p>
+
+      <h3>1. 変数を初期化せずに宣言する</h3>
+      <pre><code>// ❌ 型推論できない（anyになる）
+let count;
+count = 5;       // この時点でany
+
+// ✅ 明示的な型注釈
+let count: number;
+count = 5;</code></pre>
+
+      <h3>2. 関数パラメータの型</h3>
+      <pre><code>// ❌ パラメータの型は推論されない
+function greet(name) {  // nameはany
+  return `Hello, ${name}`;
+}
+
+// ✅ 明示的な型注釈
+function greet(name: string): string {
+  return `Hello, ${name}`;
+}</code></pre>
+
+      <h3>3. 期待する型が推論より広い場合</h3>
+      <pre><code>// 推論では string になるが、string | null にしたい
+let userName: string | null = getNameFromAPI();</code></pre>
+
+      <h3>4. オブジェクトの型を固定したい</h3>
+      <pre><code>// 推論では { name: string } になる
+const user = { name: "Alice" };
+
+// より詳細な型を定義したい場合
+interface User {
+  name: string;
+  age?: number;
+  email?: string;
+}
+
+const user: User = { name: "Alice" };</code></pre>
+
+      <h2 id="generics">ジェネリクスと型推論</h2>
+      <p>ジェネリクス関数を呼び出すとき、型引数は引数から自動的に推論されます：</p>
+      <pre><code>function identity&lt;T&gt;(value: T): T {
+  return value;
+}
+
+// 型引数を省略しても推論される
+const result1 = identity("hello");    // T = string
+const result2 = identity(42);        // T = number
+const result3 = identity([1, 2, 3]); // T = number[]
+
+// 明示的に指定することも可能
+const result4 = identity&lt;string&gt;("hello");</code></pre>
+      <p>ジェネリクスを使うことで、型推論の恩恵を最大限に受けつつ、型安全性を保てます。</p>
+
+      <h2 id="tips">実践的なTips</h2>
+      <ol>
+        <li><strong>推論に任せる</strong>：変数の初期化、関数の戻り値、コールバックの引数は推論に任せる</li>
+        <li><strong>公開APIには型を書く</strong>：関数のパラメータ、エクスポートする変数には明示的に型を書く</li>
+        <li><strong>noImplicitAny</strong>：tsconfig.jsonで<code>"noImplicitAny": true</code>を設定して、暗黙のanyを防ぐ</li>
+        <li><strong>typeof で型を再利用</strong>：<code>type MyType = typeof existingObject</code></li>
+        <li><strong>as const でリテラル型</strong>：<code>const status = "active" as const</code> → 型は <code>"active"</code> になる</li>
+      </ol>
+      <pre><code>// as const の活用例
+const config = {
+  endpoint: "/api/v1",
+  method: "GET",
+} as const;
+// { readonly endpoint: "/api/v1"; readonly method: "GET" }</code></pre>
+
+      <div class="related">
+        <h3>関連記事</h3>
+        <ul>
+          <li><a href="react-useeffect-guide.html">React useEffectの完全ガイド</a></li>
+          <li><a href="python-data-analysis.html">Pythonでデータ分析を始める方法</a></li>
+          <li><a href="git-rebase-vs-merge.html">Git rebaseとmergeの違いを完全理解する</a></li>
+        </ul>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 DevLab. All rights reserved.</p>
+  </footer>
+</body>
+</html>
