@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScriptのasync/awaitを完全理解する | DevLab</title>
+  <meta name="description" content="JavaScriptのasync/awaitの使い方を初心者向けに解説。Promiseとの違い、エラーハンドリング、並列処理、実践的なパターンまで、コード例付きで詳しく紹介。">
+  <meta name="keywords" content="JavaScript, async, await, Promise, 非同期処理, async/await, JavaScript入門">
+  <meta name="author" content="DevLab">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:title" content="JavaScriptのasync/awaitを完全理解する">
+  <meta property="og:description" content="async/awaitの使い方をコード例付きで解説。Promiseとの違いやエラーハンドリングも紹介。">
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:url" content="https://reoreoxzkami.github.io/SEO-site/articles/javascript-async-await.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JavaScriptのasync/awaitを完全理解する">
+  <meta name="twitter:description" content="async/awaitの使い方をコード例付きで解説。">
+
+  <link rel="canonical" href="https://reoreoxzkami.github.io/SEO-site/articles/javascript-async-await.html">
+  <link rel="stylesheet" href="../css/style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "JavaScriptのasync/awaitを完全理解する",
+    "description": "JavaScriptのasync/awaitの使い方を初心者向けに解説。Promiseとの違い、エラーハンドリング、並列処理を紹介",
+    "datePublished": "2026-08-21",
+    "dateModified": "2026-08-21",
+    "author": { "@type": "Organization", "name": "DevLab" },
+    "publisher": { "@type": "Organization", "name": "DevLab" },
+    "inLanguage": "ja",
+    "mainEntityOfPage": "https://reoreoxzkami.github.io/SEO-site/articles/javascript-async-await.html"
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "ホーム",
+      "item": "https://reoreoxzkami.github.io/SEO-site/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "JavaScriptのasync/awaitを完全理解する",
+      "item": "https://reoreoxzkami.github.io/SEO-site/articles/javascript-async-await.html"
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <header>
+    <p class="logo"><a href="../">DevLab</a></p>
+    <nav>
+      <a href="../">ホーム</a>
+      <a href="../#articles">記事一覧</a>
+    </nav>
+  </header>
+
+  <main>
+    <article>
+      <p class="meta"><time datetime="2026-08-21">2026年8月21日</time> · JavaScript</p>
+      <h1>JavaScriptのasync/awaitを完全理解する</h1>
+
+      <div class="toc">
+        <h3>目次</h3>
+        <ul>
+          <li><a href="#what-is-async">async/awaitとは</a></li>
+          <li><a href="#promise-review">Promiseのおさらい</a></li>
+          <li><a href="#basic-syntax">基本的な使い方</a></li>
+          <li><a href="#error-handling">エラーハンドリング</a></li>
+          <li><a href="#parallel">並列処理（Promise.all）</a></li>
+          <li><a href="#patterns">実践的なパターン</a></li>
+          <li><a href="#pitfalls">よくある落とし穴</a></li>
+        </ul>
+      </div>
+
+      <h2 id="what-is-async">async/awaitとは</h2>
+      <p><code>async/await</code>は、JavaScriptの非同期処理をよりシンプルに書くための構文です。Promiseの上に構築されており、非同期処理をまるで同期処理のように直感的に記述できます。</p>
+      <p>コールバック地獄やPromiseの<code>.then()</code>チェーンのネストに悩まされることなく、読みやすいコードを書くことができます。</p>
+
+      <h2 id="promise-review">Promiseのおさらい</h2>
+      <p><code>async/await</code>を理解するには、まずPromiseを理解する必要があります。Promiseは「将来完了する操作」を表すオブジェクトです。</p>
+      <pre><code>// Promiseの基本
+function fetchUser(id) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (id > 0) {
+        resolve({ id, name: 'ユーザー' + id });
+      } else {
+        reject(new Error('無効なID'));
+      }
+    }, 1000);
+  });
+}
+
+// .then()チェーンで処理
+fetchUser(1)
+  .then(user => {
+    console.log(user); // { id: 1, name: 'ユーザー1' }
+    return fetchUser(2);
+  })
+  .then(user2 => {
+    console.log(user2);
+  })
+  .catch(err => {
+    console.error(err);
+  });</code></pre>
+      <p><code>.then()</code>が連鎖するとネストが深くなり、コードの流れが追いづらくなります。これを解決するのが<code>async/await</code>です。</p>
+
+      <h2 id="basic-syntax">基本的な使い方</h2>
+      <p><code>async</code>キーワードを関数の前に付けると、その関数は自動的にPromiseを返します。その関数内で<code>await</code>を使うと、Promiseの解決を待つことができます。</p>
+      <pre><code>// async/awaitの基本
+async function getUsers() {
+  try {
+    const user1 = await fetchUser(1);
+    console.log(user1); // { id: 1, name: 'ユーザー1' }
+
+    const user2 = await fetchUser(2);
+    console.log(user2); // { id: 2, name: 'ユーザー2' }
+
+    return [user1, user2];
+  } catch (err) {
+    console.error('エラー:', err);
+  }
+}
+
+getUsers().then(users => console.log(users));</code></pre>
+      <p><code>await</code>がある行で処理が一時停止し、Promiseが解決されたら次の行に進みます。見た目は同期処理とほぼ同じですが、実際には非同期で動作しています。</p>
+
+      <h2 id="error-handling">エラーハンドリング</h2>
+      <p><code>async/await</code>では、<code>try/catch</code>構文でエラーを処理します。Promiseの<code>.catch()</code>に比べて、より自然なエラー処理が可能です。</p>
+      <pre><code>async function getUser(id) {
+  try {
+    const user = await fetchUser(id);
+    return user;
+  } catch (err) {
+    // エラーの種類に応じた処理
+    if (err.message === '無効なID') {
+      return { id: null, name: 'ゲスト' };
+    }
+    throw err; // 再スロー
+  }
+}</code></pre>
+
+      <h2 id="parallel">並列処理（Promise.all）</h2>
+      <p>複数の非同期処理を順番に<code>await</code>すると、1つずつ待つため処理が遅くなります。互いに依存しない処理なら<code>Promise.all</code>で並列実行すべきです。</p>
+      <pre><code>// ❌ 順番実行（遅い）
+async function fetchAllSlow() {
+  const user1 = await fetchUser(1); // 1秒待つ
+  const user2 = await fetchUser(2); // さらに1秒待つ
+  // 合計2秒
+  return [user1, user2];
+}
+
+// ✅ 並列実行（速い）
+async function fetchAllFast() {
+  const [user1, user2] = await Promise.all([
+    fetchUser(1),
+    fetchUser(2)
+  ]);
+  // 合計1秒（同時に実行）
+  return [user1, user2];
+}</code></pre>
+
+      <h2 id="patterns">実践的なパターン</h2>
+      <h3>ループ内でのasync/await</h3>
+      <pre><code>// for...ofループ（順次実行）
+async function processUsers(ids) {
+  for (const id of ids) {
+    const user = await fetchUser(id);
+    console.log(user);
+  }
+}
+
+// Promise.all + map（並列実行）
+async function processUsersParallel(ids) {
+  const users = await Promise.all(
+    ids.map(id => fetchUser(id))
+  );
+  users.forEach(user => console.log(user));
+}</code></pre>
+
+      <h3>API呼び出しの例</h3>
+      <pre><code>async function fetchPosts() {
+  try {
+    const res = await fetch('https://api.example.com/posts');
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const posts = await res.json();
+    return posts;
+  } catch (err) {
+    console.error('取得失敗:', err);
+    return [];
+  }
+}</code></pre>
+
+      <h2 id="pitfalls">よくある落とし穴</h2>
+      <ul>
+        <li><strong>トップレベルでawaitは使えない</strong>（ES2022以降はESモジュールで可能だが、基本はasync関数内で使う）</li>
+        <li><strong>forEach内のawaitは効かない</strong>：<code>forEach</code>のコールバックは非同期関数でもawaitを待たない。<code>for...of</code>を使う</li>
+        <li><strong>忘れられたawait</strong>：<code>await</code>を付け忘れるとPromiseがそのまま返り、意図しない動作になる</li>
+        <li><strong>過剰なawait</strong>：依存関係のない処理を順番にawaitするとパフォーマンスが落ちる。<code>Promise.all</code>を活用する</li>
+      </ul>
+      <pre><code>// ❌ forEachの罠
+ids.forEach(async id => {
+  const user = await fetchUser(id); // 待たない！
+});
+
+// ✅ for...ofを使う
+for (const id of ids) {
+  const user = await fetchUser(id); // 正しく待つ
+}</code></pre>
+
+      <div class="related">
+        <h3>関連記事</h3>
+        <ul>
+          <li><a href="react-useeffect-guide.html">React useEffectの完全ガイド</a></li>
+          <li><a href="typescript-type-inference.html">TypeScriptの型推論を理解する</a></li>
+          <li><a href="python-data-analysis.html">Pythonでデータ分析を始める方法</a></li>
+          <li><a href="git-rebase-vs-merge.html">Git rebaseとmergeの違いを完全理解する</a></li>
+        </ul>
+      </div>
+    </article>
+  
+<!-- admax -->
+<script src="https://adm.shinobi.jp/s/8649e069a00feed86db06fccd97345e9"></script>
+<!-- admax -->
+  </main>
+
+  <footer>
+    <p>&copy; 2026 DevLab. All rights reserved.</p>
+  </footer>
+</body>
+</html>
