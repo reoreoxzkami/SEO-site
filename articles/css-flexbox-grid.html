@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS FlexboxとGridの使い分け - モダンレイアウト入門 | DevLab</title>
+  <meta name="description" content="CSSのFlexboxとGridの違いと使い分けを解説。1次元レイアウトと2次元レイアウトの概念から、実践的なレイアウトパターン、レスポンシブ対応まで、コード例付きでわかりやすく紹介。">
+  <meta name="keywords" content="CSS, Flexbox, Grid, レイアウト, レスポンシブ, モダンCSS, CSS入門">
+  <meta name="author" content="DevLab">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:title" content="CSS FlexboxとGridの使い分け - モダンレイアウト入門">
+  <meta property="og:description" content="FlexboxとGridの違いと使い分けをコード例付きで解説。レスポンシブ対応も紹介。">
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:url" content="https://reoreoxzkami.github.io/SEO-site/articles/css-flexbox-grid.html">
+  <meta property="og:image" content="https://reoreoxzkami.github.io/SEO-site/ogp-image.png">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="CSS FlexboxとGridの使い分け - モダンレイアウト入門">
+  <meta name="twitter:description" content="FlexboxとGridの違いと使い分けをコード例付きで解説。">
+  <meta name="twitter:image" content="https://reoreoxzkami.github.io/SEO-site/ogp-image.png">
+
+  <link rel="canonical" href="https://reoreoxzkami.github.io/SEO-site/articles/css-flexbox-grid.html">
+  <link rel="stylesheet" href="../css/style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "CSS FlexboxとGridの使い分け - モダンレイアウト入門",
+    "description": "CSSのFlexboxとGridの違いと使い分けを解説。1次元レイアウトと2次元レイアウトの概念から、実践的なレイアウトパターン、レスポンシブ対応まで紹介",
+    "datePublished": "2026-08-22",
+    "dateModified": "2026-08-22",
+    "author": { "@type": "Organization", "name": "DevLab" },
+    "publisher": { "@type": "Organization", "name": "DevLab" },
+    "inLanguage": "ja",
+    "mainEntityOfPage": "https://reoreoxzkami.github.io/SEO-site/articles/css-flexbox-grid.html"
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "ホーム",
+      "item": "https://reoreoxzkami.github.io/SEO-site/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "CSS FlexboxとGridの使い分け - モダンレイアウト入門",
+      "item": "https://reoreoxzkami.github.io/SEO-site/articles/css-flexbox-grid.html"
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <header>
+    <p class="logo"><a href="../">DevLab</a></p>
+    <nav>
+      <a href="../">ホーム</a>
+      <a href="../#articles">記事一覧</a>
+    </nav>
+  </header>
+
+  <main>
+    <article>
+      <p class="meta"><time datetime="2026-08-22">2026年8月22日</time> · CSS</p>
+      <h1>CSS FlexboxとGridの使い分け - モダンレイアウト入門</h1>
+
+      <div class="toc">
+        <h3>目次</h3>
+        <ul>
+          <li><a href="#intro">FlexboxとGridの違い</a></li>
+          <li><a href="#flexbox">Flexboxの基本</a></li>
+          <li><a href="#grid">Gridの基本</a></li>
+          <li><a href="#when">どちらを使うべきか</a></li>
+          <li><a href="#patterns">実践的なレイアウトパターン</a></li>
+          <li><a href="#responsive">レスポンシブ対応</a></li>
+          <li><a href="#tips">よくある落とし穴</a></li>
+        </ul>
+      </div>
+
+      <h2 id="intro">FlexboxとGridの違い</h2>
+      <p>CSSでレイアウトを作るための2つの強力な仕組みが「Flexbox」と「Grid」です。どちらもモダンブラウザで完全にサポートされていますが、設計思想が異なります。</p>
+      <p>一言で言えば：<strong>Flexboxは1次元（横または縦のどちらか）のレイアウト、Gridは2次元（縦横同時）のレイアウト</strong>に向いています。</p>
+
+      <table>
+        <thead><tr><th>項目</th><th>Flexbox</th><th>Grid</th></tr></thead>
+        <tbody>
+          <tr><td>次元</td><td>1次元</td><td>2次元</td></tr>
+          <tr><td>向き</td><td>行または列のどちらか</td><td>行と列を同時に</td></tr>
+          <tr><td>適している用途</td><td>ナビ、ボタン群、カード1行</td><td>ページ全体、ギャラリー、複雑な配置</td></tr>
+          <tr><td>アイテムサイズ</td><td>コンテンツに依存</td><td>コンテナが制御</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="flexbox">Flexboxの基本</h2>
+      <p>Flexboxは、アイテムを行または列に並べるためのレイアウトシステムです。コンテナに<code>display: flex</code>を指定するだけで使えます。</p>
+      <pre><code>/* 基本的なFlexbox */
+.container {
+  display: flex;
+  gap: 16px;
+}
+
+/* 横並び → 縦並びに変更 */
+.container-vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 中央揃え */
+.center {
+  display: flex;
+  justify-content: center; /* 主軸方向 */
+  align-items: center;     /* 交差軸方向 */
+  min-height: 100vh;
+}
+
+/* 間隔を均等に */
+.between {
+  display: flex;
+  justify-content: space-between;
+}</code></pre>
+
+      <h3>主要なFlexプロパティ</h3>
+      <ul>
+        <li><strong>flex-direction</strong>：row（横）/ column（縦）/ row-reverse / column-reverse</li>
+        <li><strong>justify-content</strong>：主軸方向の配置（flex-start, center, space-between, space-around）</li>
+        <li><strong>align-items</strong>：交差軸方向の配置（stretch, center, flex-start, flex-end）</li>
+        <li><strong>flex-wrap</strong>：折り返し（nowrap, wrap）</li>
+        <li><strong>flex-grow / flex-shrink / flex-basis</strong>：アイテムの伸縮</li>
+      </ul>
+      <pre><code>/* アイテムの比率を指定 */
+.sidebar { flex: 1; }    /* 1倍 */
+.main    { flex: 3; }    /* 3倍 */
+.aside   { flex: 1; }    /* 1倍 */
+/* → サイドバー:メイン:サイド = 1:3:1 */</code></pre>
+
+      <h2 id="grid">Gridの基本</h2>
+      <p>Gridは、行と列の両方を同時に制御できる2次元レイアウトシステムです。ページ全体のレイアウトや、複雑な配置に向いています。</p>
+      <pre><code>/* 基本的なGrid */
+.grid-container {
+  display: grid;
+  grid-template-columns: 200px 1fr 200px;
+  grid-template-rows: auto 1fr auto;
+  gap: 16px;
+  min-height: 100vh;
+}
+
+/* ヘッダー・フッター・サイドバーの配置 */
+.header  { grid-column: 1 / -1; }
+.sidebar { grid-column: 1; grid-row: 2; }
+.main    { grid-column: 2; grid-row: 2; }
+.aside   { grid-column: 3; grid-row: 2; }
+.footer  { grid-column: 1 / -1; }</code></pre>
+
+      <h3>主要なGridプロパティ</h3>
+      <ul>
+        <li><strong>grid-template-columns</strong>：列の幅を指定（fr単位、px、auto、minmax）</li>
+        <li><strong>grid-template-rows</strong>：行の高さを指定</li>
+        <li><strong>grid-column / grid-row</strong>：アイテムの配置位置</li>
+        <li><strong>gap</strong>：行・列の間隔</li>
+        <li><strong>repeat()</strong>：繰り返しパターンの簡略記法</li>
+      </ul>
+      <pre><code>/* repeat()で簡潔に */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* minmaxで最小・最大幅を指定 */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+}</code></pre>
+
+      <h2 id="when">どちらを使うべきか</h2>
+      <p>迷ったときの判断基準：</p>
+      <ul>
+        <li><strong>Flexboxを使う</strong>：ナビゲーションバー、ボタンの並び、1行のカード、ツールバー、フォーム項目の横並び</li>
+        <li><strong>Gridを使う</strong>：ページ全体のレイアウト、画像ギャラリー、複数行のカード配置、複雑な配置パターン</li>
+        <li><strong>併用が最適なケースも多い</strong>：外側をGrid、内側をFlexboxにするなど</li>
+      </ul>
+      <blockquote>「1次元ならFlexbox、2次元ならGrid」と覚えておけば、まず間違いありません。実際のプロジェクトでは両方を組み合わせて使うのが一般的です。</blockquote>
+
+      <h2 id="patterns">実践的なレイアウトパターン</h2>
+
+      <h3>カードレイアウト（Grid）</h3>
+      <pre><code>.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}</code></pre>
+
+      <h3>センタリング（Flexbox）</h3>
+      <pre><code>/* 上下左右中央揃え - Flexbox版 */
+.center-flex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 上下左右中央揃え - Grid版（1行でOK） */
+.center-grid {
+  display: grid;
+  place-items: center;
+}</code></pre>
+
+      <h3>聖杯レイアウト（Grid）</h3>
+      <pre><code>.holy-grail {
+  display: grid;
+  grid-template-areas:
+    "header header header"
+    "nav    main   aside"
+    "footer footer footer";
+  grid-template-columns: 200px 1fr 200px;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+}
+
+.hg-header { grid-area: header; }
+.hg-nav    { grid-area: nav; }
+.hg-main   { grid-area: main; }
+.hg-aside  { grid-area: aside; }
+.hg-footer { grid-area: footer; }</code></pre>
+
+      <h2 id="responsive">レスポンシブ対応</h2>
+      <p>FlexboxとGridを組み合わせれば、メディアクエリなしでもある程度のレスポンシブ対応が可能です。</p>
+      <pre><code>/* auto-fill + minmaxで自動折り返し */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 16px;
+}
+
+/* メディアクエリで列数を変更 */
+@media (max-width: 768px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .holy-grail {
+    grid-template-areas:
+      "header"
+      "main"
+      "nav"
+      "aside"
+      "footer";
+    grid-template-columns: 1fr;
+  }
+}</code></pre>
+      <p><code>min(100%, 250px)</code>を使うことで、画面幅が250px未満の場合でもカラムがはみ出さないようにできます。</p>
+
+      <h2 id="tips">よくある落とし穴</h2>
+      <ul>
+        <li><strong>Flexboxで折り返し忘れ</strong>：<code>flex-wrap: wrap</code>を指定しないと、アイテムが縮んで1行に収まってしまう</li>
+        <li><strong>Gridのfr单位の誤解</strong>：<code>fr</code>は「残り空間の割合」であって、「全体の割合」ではない。最小幅は<code>minmax()</code>で指定する</li>
+        <li><strong>gapのブラウザ対応</strong>：Flexboxの<code>gap</code>はモダンブラウザで対応済みだが、古いブラウザでは使えない（marginで代替）</li>
+        <li><strong>Gridの暗黙のトラック</strong>：<code>grid-template-rows</code>にない行は暗黙的に作られる。明示的に指定する方が安全</li>
+        <li><strong>両方使う順序</strong>：外側をGrid、内側をFlexboxにするのが基本。逆にすると意図しない崩れが起きることがある</li>
+      </ul>
+      <pre><code>/* ❌ gap未対応ブラウザ向けのフォールバック */
+.legacy-support > * {
+  margin-right: 16px;
+}
+.legacy-support > *:last-child {
+  margin-right: 0;
+}
+
+/* ✅ モダンブラウザならgapがシンプル */
+.modern {
+  display: flex;
+  gap: 16px;
+}</code></pre>
+
+      <div class="related">
+        <h3>関連記事</h3>
+        <ul>
+          <li><a href="react-useeffect-guide.html">React useEffectの完全ガイド</a></li>
+          <li><a href="python-data-analysis.html">Pythonでデータ分析を始める方法</a></li>
+          <li><a href="typescript-type-inference.html">TypeScriptの型推論を理解する</a></li>
+          <li><a href="git-rebase-vs-merge.html">Git rebaseとmergeの違いを完全理解する</a></li>
+          <li><a href="javascript-async-await.html">JavaScriptのasync/awaitを完全理解する</a></li>
+        </ul>
+      </div>
+    </article>
+  
+<!-- admax -->
+<script src="https://adm.shinobi.jp/s/8649e069a00feed86db06fccd97345e9"></script>
+<!-- admax -->
+  </main>
+
+  <footer>
+    <p>&copy; 2026 DevLab. All rights reserved.</p>
+  </footer>
+</body>
+</html>
